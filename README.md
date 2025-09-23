@@ -1,4 +1,4 @@
-# React + TypeScript + Vite
+<!-- # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
@@ -66,4 +66,35 @@ export default defineConfig([
     },
   },
 ])
-```
+``` -->
+
+# Student Registration & Login Project
+
+## **Project Overview**
+This project is a simple **React + TypeScript** application that allows user login and student registration with **CRUD operations**. All sensitive data (passwords) are encrypted before storing in `db.json` using one-level encryption (AES).
+
+---
+
+## **Setup Instructions**
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/Dhoparepriyanka111/student-registration.git
+
+## **Features**
+- **Login Form**
+  - Email & Password validation
+- **Student Registration**
+  - Full Name, Email, Phone Number, Date of Birth, Gender, Address, Course Enrolled, Password
+  - Password is encrypted before storing
+- **CRUD Operations**
+  - Create new student
+  - Read student list
+  - Update student details
+  - Delete student
+- **Encryption**
+  - AES encryption using `crypto-js`
+  - Encrypted password stored in `db.json`
+  
+
+---
