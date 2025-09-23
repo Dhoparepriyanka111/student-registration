@@ -6,6 +6,10 @@ interface Student {
   id: number;
   fullName: string;
   email: string;
+  phone: string;
+  dob: string;
+  gender: string;
+  address: string;
   course: string;
   password: string;
 }
@@ -14,133 +18,169 @@ function StudentList() {
   const [students, setStudents] = useState<Student[]>([]);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
-  // Fetch students from db.json
+  // ✅ Load and decrypt students
+  const fetchStudents = async () => {
+    const res = await axios.get("http://localhost:5000/students");
+    const decrypted = res.data.map((s: any) => ({
+      ...s,
+      fullName: decryptData(s.fullName),
+      email: decryptData(s.email),
+      phone: decryptData(s.phone),
+      dob: decryptData(s.dob),
+      gender: decryptData(s.gender),
+      address: decryptData(s.address),
+      course: decryptData(s.course),
+      password: decryptData(s.password),
+    }));
+    setStudents(decrypted);
+  };
+
   useEffect(() => {
-    axios.get("http://localhost:5000/students").then((res) => {
-      setStudents(res.data);
-    });
+    fetchStudents();
   }, []);
 
-  // Delete student
+  // ✅ Delete student
   const handleDelete = async (id: number) => {
     await axios.delete(`http://localhost:5000/students/${id}`);
-    setStudents(students.filter((s) => s.id !== id));
+    fetchStudents();
   };
 
-  
-  const handleEdit = (student: Student) => {
-    setEditingStudent({ ...student, password: decryptData(student.password) });
-  };
-
-  // Save update
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ✅ Save student after edit
+  const handleUpdate = async () => {
     if (!editingStudent) return;
 
-    // Encrypt password before updating
-    const updatedStudent = {
-      ...editingStudent,
+    // Re-encrypt fields before saving
+    const encryptedStudent = {
+      fullName: encryptData(editingStudent.fullName),
+      email: encryptData(editingStudent.email),
+      phone: encryptData(editingStudent.phone),
+      dob: encryptData(editingStudent.dob),
+      gender: encryptData(editingStudent.gender),
+      address: encryptData(editingStudent.address),
+      course: encryptData(editingStudent.course),
       password: encryptData(editingStudent.password),
     };
 
     await axios.put(
       `http://localhost:5000/students/${editingStudent.id}`,
-      updatedStudent
+      encryptedStudent
     );
 
-    setStudents(
-      students.map((s) => (s.id === editingStudent.id ? updatedStudent : s))
-    );
     setEditingStudent(null);
+    fetchStudents();
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-10 p-6 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">All Students</h2>
-
-      <ul className="space-y-3 mb-6">
-        {students.map((s) => (
-          <li
-            key={s.id}
-            className="flex justify-between items-center border p-2 rounded"
-          >
-            <span>
-              {s.fullName} - {s.email} - {s.course}
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(s)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(s.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-     
-      {editingStudent && (
-        <form onSubmit={handleUpdate} className="space-y-3 border p-4 rounded">
-          <h3 className="text-lg font-semibold">Edit Student</h3>
-          <input
-            name="fullName"
-            value={editingStudent.fullName}
-            onChange={(e) =>
-              setEditingStudent({ ...editingStudent, fullName: e.target.value })
-            }
-            className="w-full border p-2 rounded"
-          />
-          <input
-            name="email"
-            value={editingStudent.email}
-            onChange={(e) =>
-              setEditingStudent({ ...editingStudent, email: e.target.value })
-            }
-            className="w-full border p-2 rounded"
-          />
-          <input
-            name="course"
-            value={editingStudent.course}
-            onChange={(e) =>
-              setEditingStudent({ ...editingStudent, course: e.target.value })
-            }
-            className="w-full border p-2 rounded"
-          />
-          <input
-            type="password"
-            name="password"
-            value={editingStudent.password}
-            onChange={(e) =>
-              setEditingStudent({
-                ...editingStudent,
-                password: e.target.value,
-              })
-            }
-            className="w-full border p-2 rounded"
-          />
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingStudent(null)}
-              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+    <div className="max-w-3xl mx-auto mt-10 p-6 border rounded shadow">
+      <h2 className="text-2xl font-bold mb-4">Student List</h2>
+      {students.length === 0 ? (
+        <p>No students found.</p>
+      ) : (
+        <table className="w-full border">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-2">Name</th>
+              <th className="border p-2">Email</th>
+              <th className="border p-2">Phone</th>
+              <th className="border p-2">Course</th>
+              <th className="border p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {students.map((s) =>
+              editingStudent?.id === s.id ? (
+                <tr key={s.id}>
+                  <td className="border p-2">
+                    <input
+                      value={editingStudent.fullName}
+                      onChange={(e) =>
+                        setEditingStudent({
+                          ...editingStudent,
+                          fullName: e.target.value,
+                        })
+                      }
+                      className="border p-1"
+                    />
+                  </td>
+                  <td className="border p-2">
+                    <input
+                      value={editingStudent.email}
+                      onChange={(e) =>
+                        setEditingStudent({
+                          ...editingStudent,
+                          email: e.target.value,
+                        })
+                      }
+                      className="border p-1"
+                    />
+                  </td>
+                  <td className="border p-2">
+                    <input
+                      value={editingStudent.phone}
+                      onChange={(e) =>
+                        setEditingStudent({
+                          ...editingStudent,
+                          phone: e.target.value,
+                        })
+                      }
+                      className="border p-1"
+                    />
+                  </td>
+                  <td className="border p-2">
+                    <input
+                      value={editingStudent.course}
+                      onChange={(e) =>
+                        setEditingStudent({
+                          ...editingStudent,
+                          course: e.target.value,
+                        })
+                      }
+                      className="border p-1"
+                    />
+                  </td>
+                  <td className="border p-2 space-x-2">
+                    <button
+                      onClick={handleUpdate}
+                      className="bg-green-500 text-white px-2 py-1 rounded"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingStudent(null)}
+                      className="bg-gray-400 text-white px-2 py-1 rounded"
+            
+                    >
+                      Cancel
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={s.id}>
+                  <td className="border p-2">{s.fullName}</td>
+                  <td className="border p-2">{s.email}</td>
+                  <td className="border p-2">{s.phone}</td>
+                  <td className="border p-2">{s.course}</td>
+                  <td className="border p-2 space-x-2">
+                    <button
+                      onClick={() => setEditingStudent(s)}
+                      className="bg-blue-500 text-white px-2 py-1 rounded"
+                      
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(s.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
       )}
     </div>
   );

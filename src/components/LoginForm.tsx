@@ -51,6 +51,13 @@ function LoginForm() {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          style={{
+            padding: "5px",
+            background: "blue",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+          }}
         >
           Login
         </button>
