@@ -1,0 +1,26 @@
+{
+  "students": [
+    {
+      "id": "b613",
+      "fullName": "priya",
+      "email": "piu@gmail.com",
+      "phone": "9975989412",
+      "dob": "05/04/1996",
+      "gender": "female",
+      "address": "pune",
+      "course": "it",
+      "password": "U2FsdGVkX1/2o5U7w+if/adl6F6gbyr609HvEyYKnhk="
+    },
+    {
+      "id": "976c",
+      "fullName": "ram",
+      "email": "ram@gmail.com",
+      "phone": "8874569887",
+      "dob": "2016-10-16",
+      "gender": "Male",
+      "address": "mumbai",
+      "course": "ba",
+      "password": "U2FsdGVkX19nnxADlNt9wXnZdOWqTKXHMtvClmp46Lc="
+    }
+  ]
+}
