@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js";
 
-const SECRET_KEY = "my-secret-key"; // 🔑 change in real app
+const SECRET_KEY = "my-secret-key"; 
 
 // Encrypt
 export function encryptData(data: string): string {
