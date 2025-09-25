@@ -1,8 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { encryptData } from "../utils/crypto";
-
+import { encryptData, decryptData } from "../utils/crypto";
 
 interface StudentFormProps {
   onStudentAdded?: () => void;
@@ -10,7 +9,7 @@ interface StudentFormProps {
 
 function StudentForm({ onStudentAdded }: StudentFormProps) {
   const navigate = useNavigate();
-
+  const { id } = useParams<{ id: string }>(); // Get student id from URL
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -22,10 +21,27 @@ function StudentForm({ onStudentAdded }: StudentFormProps) {
     password: "",
   });
 
+  // 🔹 Load student data if editing
+  useEffect(() => {
+    if (id) {
+      axios.get(`http://localhost:5000/students/${id}`).then((res) => {
+        const student = res.data;
+        setFormData({
+          fullName: decryptData(student.fullName),
+          email: decryptData(student.email),
+          phone: decryptData(student.phone),
+          dob: decryptData(student.dob),
+          gender: decryptData(student.gender),
+          address: decryptData(student.address),
+          course: decryptData(student.course),
+          password: decryptData(student.password),
+        });
+      });
+    }
+  }, [id]);
+
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -45,35 +61,31 @@ function StudentForm({ onStudentAdded }: StudentFormProps) {
       password: encryptData(formData.password),
     };
 
-    await axios.post("http://localhost:5000/students", encryptedStudent);
+    try {
+      if (id) {
+        // 🔹 Update existing student
+        await axios.put(`http://localhost:5000/students/${id}`, encryptedStudent);
+        alert("Student updated successfully!");
+      } else {
+        // 🔹 Add new student
+        await axios.post("http://localhost:5000/students", encryptedStudent);
+        alert("Student registered successfully!");
+      }
 
-    alert("Student Registered with per-field encryption!");
-
-    // Reset form
-    setFormData({
-      fullName: "",
-      email: "",
-      phone: "",
-      dob: "",
-      gender: "",
-      address: "",
-      course: "",
-      password: "",
-    });
-
-    if (onStudentAdded) {
-      onStudentAdded();
+      if (onStudentAdded) onStudentAdded();
+      navigate("/students");
+    } catch (error) {
+      console.error("Error saving student:", error);
+      alert("Failed to save student. Check console.");
     }
-
-    // ✅ Redirect to student list after registration
-    navigate("/students");
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Student Registration</h2>
+      <h2 className="text-xl font-bold mb-4">
+        {id ? "Edit Student" : "Student Registration"}
+      </h2>
 
-        
       <form
         onSubmit={handleSubmit}
         className="space-y-3"
@@ -149,30 +161,21 @@ function StudentForm({ onStudentAdded }: StudentFormProps) {
           required
         />
 
-        <button
-          type="submit"
-          style={{
-            padding: "5px",
-            background: "blue",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-          }}
-        >
-          Register
-        </button>
-        <button
-        onClick={() => navigate(-1)}
-         style={{
-            padding: "5px",
-            background: "blue",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-         }}
-      >
-        Back
-      </button>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            {id ? "Update" : "Register"}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/students")}
+            className="flex-1 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );
